@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MyApp());
@@ -69,6 +72,10 @@ class _MyHomePageState extends State<MyHomePage> {
       case 1:
         page = FavoritesPage();
         break;
+      case 2:
+        page = UserPage();
+        break;
+
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -89,6 +96,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     icon: Icon(Icons.favorite),
                     label: Text('Favorites'),
                   ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.favorite),
+                    label: Text('Users'),
+                  )
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
@@ -155,15 +166,35 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
-class FavoritesPage extends StatelessWidget {
+class FavoritesPage extends StatefulWidget {
+  @override
+  State<FavoritesPage> createState() => _FavoritesPageState();
+}
+
+class _FavoritesPageState extends State<FavoritesPage> {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var theme = Theme.of(context);
 
     if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
+      return FutureBuilder<List<User>>(
+        future: getUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Center(
+                    child: Text(snapshot.data![index].name),
+                  );
+                });
+          } else if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          }
+          // By default show a loading spinner.
+          return const CircularProgressIndicator();
+        },
       );
     }
 
@@ -213,5 +244,47 @@ class BigCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class UserPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _UserPageState();
+}
+
+class _UserPageState extends State<UserPage> {
+  late Future<List<User>> futureUser;
+
+  @override
+  void initState() {
+    super.initState();
+
+    futureUser = getUser();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text('Users'),
+    );
+  }
+}
+
+Future<List<User>> getUser() async {
+  var url = Uri.parse('http://localhost:8081/users');
+  var response = await http.get(url);
+
+  List jsonResponse = json.decode(response.body);
+  return jsonResponse.map((data) => User.fromJson(data)).toList();
+}
+
+class User {
+  final int id;
+  final String name;
+
+  const User({required this.id, required this.name});
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(id: json['id'], name: json['name']);
   }
 }
