@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     label: Text('Favorites'),
                   ),
                   NavigationRailDestination(
-                    icon: Icon(Icons.favorite),
+                    icon: Icon(Icons.people),
                     label: Text('Users'),
                   )
                 ],
@@ -166,35 +166,15 @@ class GeneratorPage extends StatelessWidget {
   }
 }
 
-class FavoritesPage extends StatefulWidget {
-  @override
-  State<FavoritesPage> createState() => _FavoritesPageState();
-}
-
-class _FavoritesPageState extends State<FavoritesPage> {
+class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
     var theme = Theme.of(context);
 
     if (appState.favorites.isEmpty) {
-      return FutureBuilder<List<User>>(
-        future: getUser(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return Center(
-                    child: Text(snapshot.data![index].name),
-                  );
-                });
-          } else if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          }
-          // By default show a loading spinner.
-          return const CircularProgressIndicator();
-        },
+      return Center(
+        child: Text('No favorites yet.'),
       );
     }
 
@@ -264,8 +244,20 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text('Users'),
+    return FutureBuilder<List<User>>(
+      future: getUser(),
+      builder: (context, snapshot) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Center(
+                  child: Text(snapshot.data![index].name),
+                );
+              }),
+        );
+      },
     );
   }
 }
