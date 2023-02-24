@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         page = UserPage();
         break;
-
+      case 3:
+        page = SeparacaoPage();
+        break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -99,7 +102,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   NavigationRailDestination(
                     icon: Icon(Icons.people),
                     label: Text('Users'),
-                  )
+                  ),
+                  NavigationRailDestination(
+                      icon: Icon(Icons.warehouse), label: Text('Separação'))
                 ],
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (value) {
@@ -247,17 +252,65 @@ class _UserPageState extends State<UserPage> {
     return FutureBuilder<List<User>>(
       future: getUser(),
       builder: (context, snapshot) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (BuildContext context, int index) {
-                return Center(
-                  child: Text(snapshot.data![index].name),
-                );
-              }),
-        );
+        if (snapshot.hasData) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return ListTile(
+                    title: Text(snapshot.data![index].name,
+                        style: const TextStyle(fontSize: 18)),
+                  );
+                }),
+          );
+        } else if (snapshot.hasError) {
+          return Text(snapshot.error.toString());
+        }
+        return const CircularProgressIndicator();
       },
+    );
+  }
+}
+
+class SeparacaoPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _SeparacaoPageState();
+}
+
+class _SeparacaoPageState extends State<SeparacaoPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Form(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 300,
+            child: TextField(
+              decoration: const InputDecoration(
+                  icon: Icon(Icons.person),
+                  labelText: 'Name',
+                  border: UnderlineInputBorder()),
+            ),
+          ),
+          SizedBox(
+            width: 300,
+            child: TextField(
+              decoration: const InputDecoration(
+                  icon: Icon(Icons.phone_android), labelText: 'Cel'),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: SizedBox(
+              width: 100,
+              child: ElevatedButton(onPressed: () {}, child: Text('Save')),
+            ),
+          )
+        ],
+      )),
     );
   }
 }
