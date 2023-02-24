@@ -279,38 +279,82 @@ class SeparacaoPage extends StatefulWidget {
 }
 
 class _SeparacaoPageState extends State<SeparacaoPage> {
+  RegExp _digitRegex = RegExp("[0-9]+");
+  bool isANumber = true;
+  bool isValidForm = false;
+  var _numberForm = GlobalKey<FormState>();
+
+  void setValidator(valid) {
+    setState(() {
+      isANumber = valid;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var initialText = 'Tr TR 01 01 00';
     return Center(
       child: Form(
+          key: _numberForm,
           child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 300,
-            child: TextField(
-              decoration: const InputDecoration(
-                  icon: Icon(Icons.person),
-                  labelText: 'Name',
-                  border: UnderlineInputBorder()),
-            ),
-          ),
-          SizedBox(
-            width: 300,
-            child: TextField(
-              decoration: const InputDecoration(
-                  icon: Icon(Icons.phone_android), labelText: 'Cel'),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: SizedBox(
-              width: 100,
-              child: ElevatedButton(onPressed: () {}, child: Text('Save')),
-            ),
-          )
-        ],
-      )),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 250,
+                child: TextFormField(
+                  decoration: const InputDecoration(
+                      labelText: 'Transporte',
+                      labelStyle: TextStyle(fontSize: 25),
+                      border: InputBorder.none),
+                  enabled: false,
+                  initialValue: initialText,
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                height: 60,
+                child: TextFormField(
+                    keyboardType: TextInputType.number,
+                    validator: (inputValue) {
+                      if (inputValue!.isEmpty ||
+                          !_digitRegex.hasMatch(inputValue)) {
+                        return "Informe valores numéricos";
+                      }
+                      return null;
+                    },
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (value) {
+                      print("Go button is clicked");
+                    },
+                    decoration: const InputDecoration(
+                        labelText: 'Etiqueta',
+                        helperText: ' ',
+                        filled: true,
+                        border: OutlineInputBorder(),
+                        errorBorder: OutlineInputBorder(),
+                        errorStyle: TextStyle(color: Colors.red))),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: SizedBox(
+                  width: 100,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        if (_numberForm.currentState!.validate()) {
+                          setState(() {
+                            isValidForm = true;
+                          });
+                        } else {
+                          setState(() {
+                            isValidForm = false;
+                          });
+                        }
+                      },
+                      child: Text('Save')),
+                ),
+              )
+            ],
+          )),
     );
   }
 }
